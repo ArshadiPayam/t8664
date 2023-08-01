@@ -9,5 +9,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - run: docker run -it termux/termux-docker:x86_64
+    - run: docker run -it termux/termux-docker:x86_64 pkg upgrade
     - run: pkg upgrade
