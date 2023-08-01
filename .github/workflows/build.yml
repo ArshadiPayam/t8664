@@ -10,4 +10,3 @@ jobs:
 
     steps:
     - run: docker run termux/termux-docker:x86_64 pkg upgrade
-    - run: pkg upgrade
