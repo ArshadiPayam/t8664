@@ -1,0 +1,13 @@
+name: Build
+
+on:
+  push:
+    branches: [ "master" ]
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: docker run -it termux/termux-docker:x86_64
+    - run: pkg upgrade
