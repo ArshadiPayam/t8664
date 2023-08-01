@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - run: docker run -d termux/termux-docker:x86_64 tail -f /dev/null
+    - run: docker run -d -t termux/termux-docker:x86_64
     - run: |
        id=$(docker ps -alq)
        docker exec -u system $id bash -c "V8_FROM_SOURCE=1 pkg upgrade && pkg install -y git && git clone https://github.com/sigmasd/deno && cd deno && git checkout and && pkg install -y rust && cargo b --release"
