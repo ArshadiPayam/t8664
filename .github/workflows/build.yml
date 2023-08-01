@@ -10,5 +10,5 @@ jobs:
 
     steps:
     - run: |
-        docker run termux/termux-docker:x86_64 bash -c "pkg upgrade && pkg install git && git clone https://github.com/denoland/deno && pkg install rust && cargo b --release"
+        docker run termux/termux-docker:x86_64 bash -c "pkg upgrade && pkg install -y git && git clone https://github.com/denoland/deno && pkg install -y rust && cargo b --release"
         
