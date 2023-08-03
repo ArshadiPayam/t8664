@@ -12,7 +12,7 @@ jobs:
     - run: docker run -d -t termux/termux-docker:x86_64
     - run: |
        id=$(docker ps -alq)
-       docker exec -u system $id bash -c "pkg upgrade && pkg install -y git && git clone https://github.com/sigmasd/deno && cd deno && git checkout and && pkg install -y rust && pkg install -y python && pkg install -y gn && pkg install -y ninja && V8_FROM_SOURCE=1 cargo b --release"
+       docker exec -u system $id bash -c "pkg upgrade && pkg install -y git && git clone https://github.com/sigmasd/deno && cd deno && git checkout and && pkg install -y rust && pkg install -y python && pkg install -y gn && pkg install -y ninja && V8_FROM_SOURCE=1 CLANG_BASE_PATH=/data/data/com.termux/files/usr cargo b --release"
        docker cp $id:/data/data/com.termux/files/home/target/release/deno deno
 
     - uses: actions/upload-artifact@v3
