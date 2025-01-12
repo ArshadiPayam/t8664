@@ -3,20 +3,34 @@ name: Build
 on:
   push:
     branches: [ "master" ]
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - run: docker run --platform linux/arm64 -d -t termux/termux-docker:aarch64
-    - run: |
-       id=$(docker ps -alq)
-       docker exec -u system $id bash -c "pkg upgrade && pkg install -y git && git clone https://github.com/sigmasd/deno && cd deno && git checkout and && pkg install -y rust && pkg install -y python && pkg install -y gn && pkg install -y ninja && pkg install -y libandroid-execinfo && V8_FROM_SOURCE=1 CLANG_BASE_PATH=/data/data/com.termux/files/usr cargo b --release"
-       docker cp $id:/data/data/com.termux/files/home/target/release/deno deno
+    # Step 1: Start the container and keep it running
+    - name: Start Termux Docker container
+      run: |
+        id=$(docker run --platform linux/arm64 -d -t termux/termux-docker:aarch64 bash -c "while true; do sleep 30; done")
+        echo "CONTAINER_ID=$id" >> $GITHUB_ENV
 
-    - uses: actions/upload-artifact@v3
+    # Step 2: Install dependencies and build Deno
+    - name: Build Deno in Termux
+      run: |
+        id=$CONTAINER_ID
+        docker exec $id bash -c "pkg upgrade -y && pkg install -y git rust python gn ninja libandroid-execinfo"
+        docker exec $id bash -c "git clone https://github.com/sigmasd/deno && cd deno && git checkout and"
+        docker exec $id bash -c "cd deno && V8_FROM_SOURCE=1 CLANG_BASE_PATH=/data/data/com.termux/files/usr cargo b --release"
+
+    # Step 3: Copy the built binary
+    - name: Copy Deno binary
+      run: |
+        id=$CONTAINER_ID
+        docker cp $id:/data/data/com.termux/files/home/target/release/deno deno
+
+    # Step 4: Upload the artifact
+    - name: Upload Deno binary
+      uses: actions/upload-artifact@v3
       with:
         path: deno
-
-        
