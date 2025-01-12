@@ -15,11 +15,17 @@ jobs:
         CONTAINER_ID=$(docker run --platform linux/arm64 -d -t termux/termux-docker:aarch64 bash -c "while true; do sleep 30; done")
         echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-    # Step 2: Wait and confirm the container is running
+    # Step 2: Wait and confirm the container is running (Increased wait time)
     - name: Verify container status
       run: |
-        sleep 5
+        echo "Waiting for the container to be ready..."
+        sleep 10  # Increased sleep time to give the container more time to start
+        docker ps -a  # Show all containers, even stopped ones, for better debugging
         docker ps -q --filter "id=$CONTAINER_ID" --filter "status=running" | grep .
+        if [ $? -ne 0 ]; then
+          echo "Container is not running. Exiting."
+          exit 1
+        fi
 
     # Step 3: Install dependencies and build Deno
     - name: Install dependencies and build Deno
