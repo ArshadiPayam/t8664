@@ -12,24 +12,33 @@ jobs:
     # Step 1: Start the container and keep it running
     - name: Start Termux Docker container
       run: |
-        id=$(docker run --platform linux/arm64 -d -t termux/termux-docker:aarch64 bash -c "while true; do sleep 30; done")
-        echo "CONTAINER_ID=$id" >> $GITHUB_ENV
+        CONTAINER_ID=$(docker run --platform linux/arm64 -d -t termux/termux-docker:aarch64 bash -c "while true; do sleep 30; done")
+        echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-    # Step 2: Install dependencies and build Deno
-    - name: Build Deno in Termux
+    # Step 2: Wait and confirm the container is running
+    - name: Verify container status
       run: |
-        id=$CONTAINER_ID
-        docker exec $id bash -c "pkg upgrade -y && pkg install -y git rust python gn ninja libandroid-execinfo"
-        docker exec $id bash -c "git clone https://github.com/sigmasd/deno && cd deno && git checkout and"
-        docker exec $id bash -c "cd deno && V8_FROM_SOURCE=1 CLANG_BASE_PATH=/data/data/com.termux/files/usr cargo b --release"
+        sleep 5
+        docker ps -q --filter "id=$CONTAINER_ID" --filter "status=running" | grep .
 
-    # Step 3: Copy the built binary
+    # Step 3: Install dependencies and build Deno
+    - name: Install dependencies and build Deno
+      run: |
+        docker exec $CONTAINER_ID bash -c "
+          pkg update -y &&
+          pkg install -y git rust python gn ninja libandroid-execinfo &&
+          git clone https://github.com/sigmasd/deno &&
+          cd deno &&
+          git checkout and &&
+          V8_FROM_SOURCE=1 CLANG_BASE_PATH=/data/data/com.termux/files/usr cargo build --release
+        "
+
+    # Step 4: Copy the built binary
     - name: Copy Deno binary
       run: |
-        id=$CONTAINER_ID
-        docker cp $id:/data/data/com.termux/files/home/target/release/deno deno
+        docker cp $CONTAINER_ID:/data/data/com.termux/files/home/deno/target/release/deno deno
 
-    # Step 4: Upload the artifact
+    # Step 5: Upload the artifact
     - name: Upload Deno binary
       uses: actions/upload-artifact@v3
       with:
